@@ -29,10 +29,8 @@ settings::settings()
     easy_spacing_seconds(20 * 60),
     timestamp_future_seconds(2 * 60 * 60),
     target_timespan_seconds(2 * 7 * 24 * 60 * 60),
-    retarget_proof_of_work_limit(0x1d00ffff),
-    no_retarget_proof_of_work_limit(0x207fffff),
-    min_timespan(target_timespan_seconds / retargeting_factor),
-    max_timespan(target_timespan_seconds * retargeting_factor),
+    minimum_timespan(target_timespan_seconds / retargeting_factor),
+    maximum_timespan(target_timespan_seconds * retargeting_factor),
     retargeting_interval(target_timespan_seconds / target_spacing_seconds),
     first_version(1),
     bip34_version(2),
@@ -54,6 +52,7 @@ settings::settings(config::settings context)
     {
         case config::settings::mainnet:
         {
+            proof_of_work_limit = 0x1d00ffff;
             genesis_block = chain::block::factory({
                 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -91,9 +90,9 @@ settings::settings(config::settings context)
                 0x5c, 0x38, 0x4d, 0xf7, 0xba, 0x0b, 0x8d, 0x57,
                 0x8a, 0x4c, 0x70, 0x2b, 0x6b, 0xf1, 0x1d, 0x5f,
                 0xac, 0x00, 0x00, 0x00, 0x00});
-            net_active = 750;
-            net_enforce = 950;
-            net_sample = 1000;
+            activation_threshold = 750;
+            enforcement_threshold = 950;
+            activation_sample = 1000;
             bip65_freeze = 388381;
             bip66_freeze = 363725;
             bip34_freeze = 227931;
@@ -114,6 +113,7 @@ settings::settings(config::settings context)
 
         case config::settings::testnet:
         {
+            proof_of_work_limit = 0x1d00ffff;
             genesis_block = chain::block::factory({
                 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -151,9 +151,9 @@ settings::settings(config::settings context)
                 0x5c, 0x38, 0x4d, 0xf7, 0xba, 0x0b, 0x8d, 0x57,
                 0x8a, 0x4c, 0x70, 0x2b, 0x6b, 0xf1, 0x1d, 0x5f,
                 0xac, 0x00, 0x00, 0x00, 0x00});
-            net_active = 51;
-            net_enforce = 75;
-            net_sample = 100;
+            activation_threshold = 51;
+            enforcement_threshold = 75;
+            activation_sample = 100;
             bip65_freeze = 581885;
             bip66_freeze = 330776;
             bip34_freeze = 21111;
@@ -174,6 +174,7 @@ settings::settings(config::settings context)
 
         case config::settings::regtest:
         {
+            proof_of_work_limit = 0x207fffff;
             genesis_block = chain::block::factory({
                 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

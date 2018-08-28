@@ -246,7 +246,7 @@ void block::to_data(std::ostream& stream, bool witness) const
 void block::to_data(writer& sink, bool witness) const
 {
     header_.to_data(sink, true);
-    sink.write_size_little_endian(transactions_.size());
+    sink.write_variable_little_endian(transactions_.size());
     const auto to = [&sink, witness](const transaction& tx)
     {
         tx.to_data(sink, true, witness);
@@ -321,11 +321,6 @@ size_t block::serialized_size(bool witness) const
     return value;
 }
 
-chain::header& block::header()
-{
-    return header_;
-}
-
 const chain::header& block::header() const
 {
     return header_;
@@ -336,7 +331,6 @@ void block::set_header(const chain::header& value)
     header_ = value;
 }
 
-// TODO: see set_header comments.
 void block::set_header(chain::header&& value)
 {
     header_ = std::move(value);
@@ -805,16 +799,13 @@ code block::connect_transactions(const chain_state& state) const
 
 // These checks are self-contained; blockchain (and so version) independent.
 code block::check(uint64_t max_money, uint32_t timestamp_future_seconds,
-    uint32_t retarget_proof_of_work_limit,
-    uint32_t no_retarget_proof_of_work_limit, bool retarget) const
+    uint32_t proof_of_work_limit) const
 {
     metadata.start_check = asio::steady_clock::now();
 
     code ec;
 
-    if ((ec = header_.check(timestamp_future_seconds,
-        retarget_proof_of_work_limit, no_retarget_proof_of_work_limit, retarget)
-        ))
+    if ((ec = header_.check(timestamp_future_seconds, proof_of_work_limit)))
         return ec;
 
     // TODO: relates to total of tx.size(false) (pool cache).
