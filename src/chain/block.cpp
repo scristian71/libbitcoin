@@ -798,14 +798,15 @@ code block::connect_transactions(const chain_state& state) const
 //-----------------------------------------------------------------------------
 
 // These checks are self-contained; blockchain (and so version) independent.
-code block::check(uint64_t max_money, uint32_t timestamp_future_seconds,
-    uint32_t proof_of_work_limit) const
+code block::check(uint64_t max_money, uint32_t timestamp_limit_seconds,
+    uint32_t proof_of_work_limit, bool scrypt) const
 {
     metadata.start_check = asio::steady_clock::now();
 
     code ec;
 
-    if ((ec = header_.check(timestamp_future_seconds, proof_of_work_limit)))
+    if ((ec = header_.check(timestamp_limit_seconds, proof_of_work_limit,
+        scrypt)))
         return ec;
 
     // TODO: relates to total of tx.size(false) (pool cache).
@@ -886,9 +887,9 @@ code block::accept(const chain_state& state, const bc::settings& settings,
         return error::coinbase_height_mismatch;
 
     // TODO: relates height to total of tx.fee (pool cach).
-    else if (!is_valid_coinbase_claim(state.height(), settings.subsidy_interval,
-            settings.bitcoin_to_satoshi(settings.initial_block_subsidy_bitcoin))
-            )
+    else if (!is_valid_coinbase_claim(state.height(),
+            settings.subsidy_interval(), settings.bitcoin_to_satoshi(
+                settings.initial_block_subsidy_bitcoin())))
         return error::coinbase_value_limit;
 
     // TODO: relates median time past to tx.locktime (pool cache min tx.time).
