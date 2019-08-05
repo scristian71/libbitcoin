@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2018 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -16,13 +16,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/bitcoin/math/ec_scalar.hpp>
+#include <bitcoin/system/math/ec_scalar.hpp>
 
-#include <bitcoin/bitcoin/math/hash.hpp>
-#include <bitcoin/bitcoin/formats/base_16.hpp>
-#include <bitcoin/bitcoin/utility/serializer.hpp>
+#include <bitcoin/system/math/hash.hpp>
+#include <bitcoin/system/math/elliptic_curve.hpp>
 
 namespace libbitcoin {
+namespace system {
 
 // TODO: implement equality and inequality for ec_scalar and ec_secret.
 const ec_scalar ec_scalar::zero = null_hash;
@@ -129,4 +129,5 @@ const ec_secret& ec_scalar::secret() const
     return secret_;
 }
 
+} // namespace system
 } // namespace libbitcoin

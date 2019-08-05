@@ -1,5 +1,5 @@
 ###############################################################################
-#  Copyright (c) 2014-2015 libbitcoin developers (see COPYING).
+#  Copyright (c) 2014-2019 libbitcoin-system developers (see COPYING).
 #
 #         GENERATED SOURCE CODE, DO NOT EDIT EXCEPT EXPERIMENTALLY
 #
@@ -13,7 +13,7 @@
 AC_PREREQ([2.65])
 
 # Process command-line arguments and perform initialization and verification.
-AC_INIT([libbitcoin], [4.0.0], [eric@voskuil.org])
+AC_INIT([libbitcoin-system], [4.0.0], [eric@voskuil.org])
 
 # Do compilation tests.
 AC_LANG(C++)
@@ -36,6 +36,7 @@ AC_USE_SYSTEM_EXTENSIONS
 AM_PROG_AR
 
 # Initialize libtool.
+LT_PREREQ(2.4.2)
 LT_INIT
 
 # Determine C++ compiler to use.
@@ -58,6 +59,9 @@ PKG_PROG_PKG_CONFIG
 AS_IF([test -n "$PKG_CONFIG"], [],
     [AC_MSG_ERROR([pkg-config is required but was not found.])])
 
+AS_CASE([${enable_static}],
+    [yes], [AC_SUBST([PKG_CONFIG], ["$PKG_CONFIG --static"])],
+    [])
 
 # Declare environment variables that affect the build.
 #------------------------------------------------------------------------------
@@ -491,5 +495,5 @@ AS_CASE([${CC}], [*gcc*],
 
 # Process outputs into templates.
 #==============================================================================
-AC_CONFIG_FILES([Makefile libbitcoin.pc])
+AC_CONFIG_FILES([Makefile libbitcoin-system.pc])
 AC_OUTPUT

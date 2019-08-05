@@ -1,11 +1,11 @@
 #!/bin/bash
 ###############################################################################
-#  Copyright (c) 2014-2015 libbitcoin developers (see COPYING).
+#  Copyright (c) 2014-2019 libbitcoin-system developers (see COPYING).
 #
 #         GENERATED SOURCE CODE, DO NOT EDIT EXCEPT EXPERIMENTALLY
 #
 ###############################################################################
-# Script to build and install libbitcoin.
+# Script to build and install libbitcoin-system.
 #
 # Script options:
 # --with-icu               Compile with International Components for Unicode.
@@ -55,7 +55,7 @@
 #==============================================================================
 # The default build directory.
 #------------------------------------------------------------------------------
-BUILD_DIR="build-libbitcoin"
+BUILD_DIR="build-libbitcoin-system"
 
 # ICU archive.
 #------------------------------------------------------------------------------
@@ -207,7 +207,7 @@ push_directory()
 display_help()
 {
     display_message "Usage: ./install.sh [OPTION]..."
-    display_message "Manage the installation of libbitcoin."
+    display_message "Manage the installation of libbitcoin-system."
     display_message "Script options:"
     display_message "  --with-icu               Compile with International Components for Unicode."
     display_message "                             Since the addition of BIP-39 and later BIP-38 "
@@ -274,7 +274,6 @@ for OPTION in "$@"; do
         (--build-zlib)          BUILD_ZLIB="yes";;
         (--build-png)           BUILD_PNG="yes";;
         (--build-qrencode)      BUILD_QRENCODE="yes";;
-        (--build-zmq)           BUILD_ZMQ="yes";;
         (--build-boost)         BUILD_BOOST="yes";;
 
         # Unique script options.
@@ -370,7 +369,7 @@ fi
 
 display_configuration()
 {
-    display_message "libbitcoin installer configuration."
+    display_message "libbitcoin-system installer configuration."
     display_message "--------------------------------------------------------------------"
     display_message "OS                    : $OS"
     display_message "PARALLEL              : $PARALLEL"
@@ -435,9 +434,9 @@ SECP256K1_OPTIONS=(
 "--disable-tests" \
 "--enable-module-recovery")
 
-# Define bitcoin options.
+# Define bitcoin-system options.
 #------------------------------------------------------------------------------
-BITCOIN_OPTIONS=(
+BITCOIN_SYSTEM_OPTIONS=(
 "${with_boost}" \
 "${with_pkgconfigdir}")
 
@@ -536,9 +535,15 @@ build_from_tarball()
     # Join generated and command line options.
     local CONFIGURATION=("${OPTIONS[@]}" "$@")
 
-    configure_options "${CONFIGURATION[@]}"
-    make_jobs $JOBS --silent
-    make install
+    if [[ $ARCHIVE == $MBEDTLS_ARCHIVE ]]; then
+        make -j $JOBS lib
+        make DESTDIR=$PREFIX install
+    else
+        configure_options "${CONFIGURATION[@]}"
+        make_jobs $JOBS --silent
+        make install
+    fi
+
     configure_links
 
     # Enable shared only zlib build.
@@ -788,7 +793,7 @@ build_all()
     build_from_tarball $QRENCODE_URL $QRENCODE_ARCHIVE bzip2 . $PARALLEL "$BUILD_QRENCODE" "${QRENCODE_OPTIONS[@]}" "$@"
     build_from_tarball_boost $BOOST_URL $BOOST_ARCHIVE bzip2 . $PARALLEL "$BUILD_BOOST" "${BOOST_OPTIONS[@]}"
     build_from_github libbitcoin secp256k1 version5 $PARALLEL ${SECP256K1_OPTIONS[@]} "$@"
-    build_from_travis libbitcoin libbitcoin master $PARALLEL ${BITCOIN_OPTIONS[@]} "$@"
+    build_from_travis libbitcoin libbitcoin-system master $PARALLEL ${BITCOIN_SYSTEM_OPTIONS[@]} "$@"
 }
 
 

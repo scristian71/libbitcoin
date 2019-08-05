@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -16,45 +16,44 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/bitcoin/chain/script.hpp>
+#include <bitcoin/system/chain/script.hpp>
 
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
-#include <memory>
 #include <numeric>
 #include <sstream>
 #include <utility>
 #include <boost/range/adaptor/reversed.hpp>
-#include <bitcoin/bitcoin/constants.hpp>
-#include <bitcoin/bitcoin/chain/transaction.hpp>
-#include <bitcoin/bitcoin/chain/witness.hpp>
-#include <bitcoin/bitcoin/error.hpp>
-#include <bitcoin/bitcoin/formats/base_16.hpp>
-#include <bitcoin/bitcoin/math/elliptic_curve.hpp>
-#include <bitcoin/bitcoin/math/hash.hpp>
-#include <bitcoin/bitcoin/machine/interpreter.hpp>
-#include <bitcoin/bitcoin/machine/opcode.hpp>
-#include <bitcoin/bitcoin/machine/operation.hpp>
-#include <bitcoin/bitcoin/machine/program.hpp>
-#include <bitcoin/bitcoin/machine/rule_fork.hpp>
-#include <bitcoin/bitcoin/machine/script_pattern.hpp>
-#include <bitcoin/bitcoin/machine/script_version.hpp>
-#include <bitcoin/bitcoin/machine/sighash_algorithm.hpp>
-#include <bitcoin/bitcoin/message/messages.hpp>
-#include <bitcoin/bitcoin/utility/assert.hpp>
-#include <bitcoin/bitcoin/utility/container_sink.hpp>
-#include <bitcoin/bitcoin/utility/container_source.hpp>
-#include <bitcoin/bitcoin/utility/data.hpp>
-#include <bitcoin/bitcoin/utility/istream_reader.hpp>
-#include <bitcoin/bitcoin/utility/ostream_writer.hpp>
-#include <bitcoin/bitcoin/utility/string.hpp>
+#include <bitcoin/system/constants.hpp>
+#include <bitcoin/system/chain/transaction.hpp>
+#include <bitcoin/system/chain/witness.hpp>
+#include <bitcoin/system/error.hpp>
+#include <bitcoin/system/formats/base_16.hpp>
+#include <bitcoin/system/math/elliptic_curve.hpp>
+#include <bitcoin/system/math/hash.hpp>
+#include <bitcoin/system/machine/opcode.hpp>
+#include <bitcoin/system/machine/operation.hpp>
+#include <bitcoin/system/machine/program.hpp>
+#include <bitcoin/system/machine/rule_fork.hpp>
+#include <bitcoin/system/machine/script_pattern.hpp>
+#include <bitcoin/system/machine/script_version.hpp>
+#include <bitcoin/system/machine/sighash_algorithm.hpp>
+#include <bitcoin/system/message/messages.hpp>
+#include <bitcoin/system/utility/assert.hpp>
+#include <bitcoin/system/utility/container_sink.hpp>
+#include <bitcoin/system/utility/container_source.hpp>
+#include <bitcoin/system/utility/data.hpp>
+#include <bitcoin/system/utility/istream_reader.hpp>
+#include <bitcoin/system/utility/ostream_writer.hpp>
+#include <bitcoin/system/utility/string.hpp>
 
 namespace libbitcoin {
+namespace system {
 namespace chain {
 
-using namespace bc::machine;
+using namespace bc::system::machine;
 using namespace boost::adaptors;
 
 // bit.ly/2cPazSa
@@ -846,7 +845,7 @@ bool script::check_signature(const ec_signature& signature,
     const script& script_code, const transaction& tx, uint32_t input_index,
     script_version version, uint64_t value)
 {
-    if (public_key.empty())
+    if (signature.empty() || public_key.empty())
         return false;
 
     // This always produces a valid signature hash, including one_hash.
@@ -1073,7 +1072,7 @@ bool script::is_sign_script_hash_pattern(const operation::list& ops)
         && !ops.back().data().empty();
 }
 
-operation::list script::to_pay_null_data_pattern(data_slice data)
+operation::list script::to_pay_null_data_pattern(const data_slice& data)
 {
     if (data.size() > max_null_data_size)
         return {};
@@ -1085,7 +1084,7 @@ operation::list script::to_pay_null_data_pattern(data_slice data)
     };
 }
 
-operation::list script::to_pay_public_key_pattern(data_slice point)
+operation::list script::to_pay_public_key_pattern(const data_slice& point)
 {
     if (!is_public_key(point))
         return {};
@@ -1334,7 +1333,7 @@ void script::find_and_delete_(const data_chunk& endorsement)
         op.from_data(source);
     }
 
-    // Delete any found values, reversed to prevent iterator inmetadata.
+    // Delete any found values, reversed to prevent iterator invalidation.
     for (const auto it: reverse(found))
         bytes_.erase(it, it + value.size());
 }
@@ -1465,4 +1464,5 @@ code script::verify(const transaction& tx, uint32_t input_index,
 }
 
 } // namespace chain
+} // namespace system
 } // namespace libbitcoin

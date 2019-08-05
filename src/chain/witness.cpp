@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -16,35 +16,34 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/bitcoin/chain/witness.hpp>
+#include <bitcoin/system/chain/witness.hpp>
 
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <istream>
-#include <iterator>
 #include <numeric>
 #include <string>
 #include <utility>
 #include <boost/algorithm/string.hpp>
-#include <bitcoin/bitcoin/chain/script.hpp>
-#include <bitcoin/bitcoin/error.hpp>
-#include <bitcoin/bitcoin/machine/operation.hpp>
-#include <bitcoin/bitcoin/machine/program.hpp>
-#include <bitcoin/bitcoin/machine/script_pattern.hpp>
-#include <bitcoin/bitcoin/message/messages.hpp>
-#include <bitcoin/bitcoin/utility/assert.hpp>
-#include <bitcoin/bitcoin/utility/collection.hpp>
-#include <bitcoin/bitcoin/utility/container_sink.hpp>
-#include <bitcoin/bitcoin/utility/container_source.hpp>
-#include <bitcoin/bitcoin/utility/data.hpp>
-#include <bitcoin/bitcoin/utility/istream_reader.hpp>
-#include <bitcoin/bitcoin/utility/ostream_writer.hpp>
+#include <bitcoin/system/chain/script.hpp>
+#include <bitcoin/system/error.hpp>
+#include <bitcoin/system/machine/operation.hpp>
+#include <bitcoin/system/machine/program.hpp>
+#include <bitcoin/system/message/messages.hpp>
+#include <bitcoin/system/utility/assert.hpp>
+#include <bitcoin/system/utility/collection.hpp>
+#include <bitcoin/system/utility/container_sink.hpp>
+#include <bitcoin/system/utility/container_source.hpp>
+#include <bitcoin/system/utility/data.hpp>
+#include <bitcoin/system/utility/istream_reader.hpp>
+#include <bitcoin/system/utility/ostream_writer.hpp>
 
 namespace libbitcoin {
+namespace system {
 namespace chain {
 
-using namespace bc::machine;
+using namespace bc::system::machine;
 
 // Constructors.
 //-----------------------------------------------------------------------------
@@ -433,6 +432,12 @@ bool witness::extract_embedded_script(script& out_script,
                     return false;
 
                 // The hash160 of public key must match the program (bip141).
+                // This is enforced by script evaluation, so optimized out here.
+                ////if (!std::equal(program.begin(), program.end(),
+                ////    bitcoin_short_hash(out_stack[1]).begin()))
+                ////    return false;
+
+                // The script is derived from the stack (bip141).
                 out_script.from_operations(to_pay_key_hash(std::move(program)));
                 return true;
             }
@@ -451,7 +456,7 @@ bool witness::extract_embedded_script(script& out_script,
                 if (!is_push_size(out_stack))
                     return false;
 
-                // SHA256 of the witness script must match program (bip141).
+                // The SHA256 of the witness script must match program (bip141).
                 return std::equal(program.begin(), program.end(),
                     sha256_hash(out_script.to_data(false)).begin());
             }
@@ -473,7 +478,7 @@ bool witness::extract_embedded_script(script& out_script,
 //-----------------------------------------------------------------------------
 
 // static
-// The program script is either a prevout script or an emedded script.
+// The program script is either a prevout script or an embedded script.
 // It validates this witness, from which the witness script is derived.
 code witness::verify(const transaction& tx, uint32_t input_index,
     uint32_t forks, const script& program_script, uint64_t value) const
@@ -513,4 +518,5 @@ code witness::verify(const transaction& tx, uint32_t input_index,
 }
 
 } // namespace chain
+} // namespace system
 } // namespace libbitcoin

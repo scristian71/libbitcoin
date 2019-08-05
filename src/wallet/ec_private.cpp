@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -16,24 +16,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/bitcoin/wallet/ec_private.hpp>
+#include <bitcoin/system/wallet/ec_private.hpp>
 
 #include <cstdint>
 #include <iostream>
 #include <string>
 #include <utility>
 #include <boost/program_options.hpp>
-#include <bitcoin/bitcoin/formats/base_58.hpp>
-#include <bitcoin/bitcoin/math/checksum.hpp>
-#include <bitcoin/bitcoin/math/ec_scalar.hpp>
-#include <bitcoin/bitcoin/math/elliptic_curve.hpp>
-#include <bitcoin/bitcoin/math/hash.hpp>
-#include <bitcoin/bitcoin/utility/data.hpp>
-#include <bitcoin/bitcoin/wallet/ec_public.hpp>
-#include <bitcoin/bitcoin/wallet/hd_private.hpp>
-#include <bitcoin/bitcoin/wallet/payment_address.hpp>
+#include <bitcoin/system/formats/base_58.hpp>
+#include <bitcoin/system/math/checksum.hpp>
+#include <bitcoin/system/math/ec_scalar.hpp>
+#include <bitcoin/system/math/elliptic_curve.hpp>
+#include <bitcoin/system/math/hash.hpp>
+#include <bitcoin/system/utility/data.hpp>
+#include <bitcoin/system/wallet/ec_public.hpp>
+#include <bitcoin/system/wallet/hd_private.hpp>
+#include <bitcoin/system/wallet/payment_address.hpp>
 
 namespace libbitcoin {
+namespace system {
 namespace wallet {
 
 const uint8_t ec_private::compressed_sentinel = 0x01;
@@ -91,7 +92,7 @@ ec_private::ec_private(const ec_secret& secret, uint16_t version, bool compress)
 // Validators.
 // ----------------------------------------------------------------------------
 
-bool ec_private::is_wif(data_slice decoded)
+bool ec_private::is_wif(const data_slice& decoded)
 {
     const auto size = decoded.size();
     if (size != wif_compressed_size && size != wif_uncompressed_size)
@@ -272,4 +273,5 @@ void swap(ec_private& left, ec_private& right)
 }
 
 } // namespace wallet
+} // namespace system
 } // namespace libbitcoin

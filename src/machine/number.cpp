@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -16,11 +16,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/bitcoin/machine/number.hpp>
+#include <bitcoin/system/machine/number.hpp>
 
 #include <cstdint>
 
 namespace libbitcoin {
+namespace system {
 namespace machine {
 
 const uint8_t number::negative_1 = negative_mask | positive_1;
@@ -45,4 +46,5 @@ const uint8_t number::positive_16 = 16;
 const uint8_t number::negative_mask = 0x80;
 
 } // namespace machine
+} // namespace system
 } // namespace libbitcoin

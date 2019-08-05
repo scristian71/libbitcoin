@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2018 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -17,11 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <cstdint>
-#include <bitcoin/bitcoin/settings.hpp>
-#include <bitcoin/bitcoin/chain/block.hpp>
-#include <bitcoin/bitcoin/chain/chain_state.hpp>
+#include <bitcoin/system/settings.hpp>
+#include <bitcoin/system/chain/block.hpp>
+#include <bitcoin/system/chain/chain_state.hpp>
 
 namespace libbitcoin {
+namespace system {
 
 using namespace chain;
 
@@ -223,12 +224,10 @@ settings::settings(config::settings context)
             const config::checkpoint genesis_checkpoint(
                 static_cast<chain::block>(genesis_block).hash(), 0);
 
-            // Since bip90 assumes a historical bip34 activation block,
-            // use genesis.
+            // bip90 assumes a historical bip34 activation block, use genesis.
             bip34_active_checkpoint = genesis_checkpoint;
 
-            // The activation window is fixed and closed, so assume
-            // genesis activation.
+            // This is fixed and closed, so assume genesis activation.
             bip9_bit0_active_checkpoint = genesis_checkpoint;
             bip9_bit1_active_checkpoint = genesis_checkpoint;
 
@@ -344,4 +343,5 @@ uint64_t settings::max_money() const
     return max_money_;
 }
 
+} // namespace system
 } // namespace libbitcoin

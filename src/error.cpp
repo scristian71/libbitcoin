@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -16,13 +16,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/bitcoin/error.hpp>
+#include <bitcoin/system/error.hpp>
 
 #include <boost/asio.hpp>
 #include <boost/system/error_code.hpp>
-#include <bitcoin/bitcoin/compat.hpp>
+#include <bitcoin/system/compat.hpp>
 
-using namespace bc;
+using namespace bc::system;
 
 class error_category_impl
   : public std::error_category
@@ -51,7 +51,7 @@ std::string error_category_impl::message(int ev) const BC_NOEXCEPT
     {
         // general codes
         { error::success, "success" },
-        { error::deprecated, "deprecated" },
+        { error::deprecated1, "deprecated1" },
         { error::unknown, "unknown error" },
         { error::not_found, "object does not exist" },
         { error::file_system, "file system error" },
@@ -151,12 +151,17 @@ std::string error_category_impl::message(int ev) const BC_NOEXCEPT
         { error::invalid_stack_scope, "invalid stack scope" },
         { error::invalid_script_embed, "invalid script embed" },
         { error::invalid_signature_encoding, "invalid signature encoding" },
-        { error::invalid_signature_lax_encoding, "invalid signature lax encoding" },
+        { error::deprecated2, "deprecated2" },
         { error::incorrect_signature, "incorrect signature" },
         { error::unexpected_witness, "unexpected witness" },
         { error::invalid_witness, "invalid witness" },
         { error::dirty_witness, "dirty witness" },
         { error::stack_false, "stack false" },
+
+        // http
+        { error::http_invalid_request, "invalid request" },
+        { error::http_method_not_found, "method not found" },
+        { error::http_internal_error, "internal error" },
 
         // op eval
         { error::op_disabled, "op_disabled" },
@@ -259,6 +264,7 @@ std::error_condition error_category_impl::default_error_condition(int ev)
 }
 
 namespace libbitcoin {
+namespace system {
 namespace error {
 
     code make_error_code(error_code_t e)
@@ -435,4 +441,5 @@ namespace error {
     }
 
 } // namespace error
+} // namespace system
 } // namespace libbitcoin

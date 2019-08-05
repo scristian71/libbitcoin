@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/libbitcoin/libbitcoin.svg?branch=master)](https://travis-ci.org/libbitcoin/libbitcoin)
+[![Build Status](https://travis-ci.org/libbitcoin/libbitcoin-system.svg?branch=master)](https://travis-ci.org/libbitcoin/libbitcoin-system)
 
-[![Coverage Status](https://coveralls.io/repos/libbitcoin/libbitcoin/badge.svg)](https://coveralls.io/r/libbitcoin/libbitcoin)
+[![Coverage Status](https://coveralls.io/repos/libbitcoin/libbitcoin-system/badge.svg)](https://coveralls.io/r/libbitcoin/libbitcoin-system)
 
 # Libbitcoin
 
@@ -113,13 +113,6 @@ $ ./install.sh --prefix=/home/me/myprefix --build-boost --disable-shared
 ```
 
 Libbitcoin is now installed in `/home/me/myprefix/`.
-
-##### Installing from Formula
-
-Instead of building, libbitcoin can be installed from a formula:
-```sh
-$ brew install libbitcoin
-```
 
 #### Using MacPorts
 

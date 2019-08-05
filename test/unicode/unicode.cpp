@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -21,9 +21,9 @@
 #include <stdexcept>
 #include <vector>
 #include <boost/test/unit_test.hpp>
-#include <bitcoin/bitcoin.hpp>
+#include <bitcoin/system.hpp>
 
-using namespace bc;
+using namespace bc::system;
 
 BOOST_AUTO_TEST_SUITE(unicode_tests)
 
@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(unicode__to_normal_nfc_form__validate__test)
     BOOST_REQUIRE(decode_base16(normal, "cf9300f0909080f09f92a9"));
     std::string expected_normal_string(normal.begin(), normal.end());
 
-    const auto derived_normal_string = bc::to_normal_nfc_form(original_string);
+    const auto derived_normal_string = to_normal_nfc_form(original_string);
     BOOST_REQUIRE_EQUAL(expected_normal_string, derived_normal_string);
 }
 
@@ -50,6 +50,31 @@ BOOST_AUTO_TEST_CASE(unicode__to_normal_nfkd_form__validate__test)
     const auto ideographic_space_sandwich = "space->　<-space";
     const auto normalized = to_normal_nfkd_form(ideographic_space_sandwich);
     BOOST_REQUIRE_EQUAL(normalized.c_str(), ascii_space_sandwich);
+}
+
+BOOST_AUTO_TEST_CASE(unicode__to_normal_nfkd_form__61cc81__c3a1)
+{
+    const std::string literal_c3a1 = "á";
+
+    // This is pasted from the the BIP39 encoding:
+    //// github.com/bitcoin/bips/blob/master/bip-0039/spanish.txt#L93
+    const std::string literal_61cc81 = "á";
+
+    const std::string string_c3a1 = "\xc3\xa1";
+    const std::string string_61cc81 = "\x61\xcc\x81";
+    BOOST_REQUIRE_EQUAL(string_c3a1, literal_c3a1);
+    BOOST_REQUIRE_EQUAL(string_61cc81, literal_61cc81);
+
+    const auto normalized_c3a1 = to_normal_nfkd_form(string_c3a1);
+    const auto normalized_61cc81 = to_normal_nfkd_form(string_61cc81);
+
+#ifdef _MSC_VER
+    BOOST_REQUIRE_EQUAL(normalized_61cc81.c_str(), string_c3a1);
+    BOOST_REQUIRE_EQUAL(normalized_c3a1.c_str(), string_c3a1);
+#else
+    BOOST_REQUIRE_EQUAL(normalized_61cc81.c_str(), string_61cc81);
+    BOOST_REQUIRE_EQUAL(normalized_c3a1.c_str(), string_61cc81);
+#endif
 }
 
 #endif

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -19,7 +19,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <stdexcept>
-#include <bitcoin/bitcoin.hpp>
+#include <bitcoin/system.hpp>
 
 #ifdef _MSC_VER
     #include <windows.h>
@@ -37,7 +37,7 @@
     #define THREAD_PRIORITY_LOWEST PRIO_MAX
 #endif
 
-using namespace bc;
+using namespace bc::system;
 
 BOOST_AUTO_TEST_SUITE(thread_tests)
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2018 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -16,16 +16,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/bitcoin/formats/base_32.hpp>
+#include <bitcoin/system/formats/base_32.hpp>
 
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <string>
-#include <bitcoin/bitcoin/utility/data.hpp>
+#include <bitcoin/system/utility/data.hpp>
 
 namespace libbitcoin {
+namespace system {
 
 static constexpr size_t checksum_size = 6;
 static constexpr size_t prefix_min_size = 1;
@@ -259,4 +260,5 @@ bool decode_base32(base32& out, const std::string& in)
     return true;
 }
 
+} // namespace system
 } // namespace libbitcoin

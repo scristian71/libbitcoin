@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/bitcoin/unicode/unicode.hpp>
+#include <bitcoin/system/unicode/unicode.hpp>
 
 #include <cstddef>
 #include <cstring>
@@ -26,13 +26,13 @@
 #include <stdexcept>
 #include <string>
 #include <boost/locale.hpp>
-#include <bitcoin/bitcoin/define.hpp>
-#include <bitcoin/bitcoin/math/limits.hpp>
-#include <bitcoin/bitcoin/unicode/console_streambuf.hpp>
-#include <bitcoin/bitcoin/unicode/unicode_istream.hpp>
-#include <bitcoin/bitcoin/unicode/unicode_ostream.hpp>
-#include <bitcoin/bitcoin/utility/assert.hpp>
-#include <bitcoin/bitcoin/utility/data.hpp>
+#include <bitcoin/system/define.hpp>
+#include <bitcoin/system/math/limits.hpp>
+#include <bitcoin/system/unicode/console_streambuf.hpp>
+#include <bitcoin/system/unicode/unicode_istream.hpp>
+#include <bitcoin/system/unicode/unicode_ostream.hpp>
+#include <bitcoin/system/utility/assert.hpp>
+#include <bitcoin/system/utility/data.hpp>
 
 #ifdef _MSC_VER
     #include <fcntl.h>
@@ -40,6 +40,7 @@
 #endif
 
 namespace libbitcoin {
+namespace system {
 
 using namespace boost::locale;
 
@@ -59,7 +60,7 @@ static std::once_flag icu_mutex;
 
 #endif
 
-// Static initializer for bc::cin.
+// Static initializer for bc::system::cin.
 std::istream& cin_stream()
 {
     std::call_once(io_mutex, console_streambuf::initialize, utf16_buffer_size);
@@ -67,7 +68,7 @@ std::istream& cin_stream()
     return input;
 }
 
-// Static initializer for bc::cout.
+// Static initializer for bc::system::cout.
 std::ostream& cout_stream()
 {
     std::call_once(io_mutex, console_streambuf::initialize, utf16_buffer_size);
@@ -75,7 +76,7 @@ std::ostream& cout_stream()
     return output;
 }
 
-// Static initializer for bc::cerr.
+// Static initializer for bc::system::cerr.
 std::ostream& cerr_stream()
 {
     std::call_once(io_mutex, console_streambuf::initialize, utf16_buffer_size);
@@ -88,9 +89,9 @@ std::ostream& cerr_stream()
 // The backend selection is ignored if invalid (in this case on Windows).
 static std::string normal_form(const std::string& value, norm_type form)
 {
-    auto backend = localization_backend_manager::global();
-    backend.select(BC_LOCALE_BACKEND);
-    const generator locale(backend);
+    auto backend_manager = localization_backend_manager::global();
+    backend_manager.select(BC_LOCALE_BACKEND);
+    const generator locale(backend_manager);
     return normalize(value, form, locale(BC_LOCALE_UTF8));
 }
 
@@ -99,11 +100,12 @@ static std::string normal_form(const std::string& value, norm_type form)
 // normalization if the ICU dependency is missing.
 static void validate_localization()
 {
-    const auto ascii_space = "> <";
-    const auto ideographic_space = ">　<";
-    const auto normal = normal_form(ideographic_space, norm_type::norm_nfkd);
+    const auto backend_manager = localization_backend_manager::global();
+    const auto available_backends = backend_manager.get_all_backends();
+    const auto iterator = std::find(available_backends.cbegin(),
+        available_backends.cend(), BC_LOCALE_BACKEND);
 
-    if (normal != ascii_space)
+    if (iterator == available_backends.cend())
         throw std::runtime_error(
             "Unicode normalization test failed, a dependency may be missing.");
 }
@@ -120,6 +122,16 @@ std::string to_normal_nfkd_form(const std::string& value)
 {
     std::call_once(icu_mutex, validate_localization);
     return normal_form(value, norm_type::norm_nfkd);
+}
+
+// The backend selection is ignored if invalid (in this case on Windows).
+std::string to_lower(const std::string& value)
+{
+    std::call_once(icu_mutex, validate_localization);
+    auto backend = localization_backend_manager::global();
+    backend.select(BC_LOCALE_BACKEND);
+    const generator locale(backend);
+    return boost::locale::to_lower(value, locale(BC_LOCALE_UTF8));
 }
 
 #endif
@@ -151,7 +163,7 @@ char** allocate_environment(int argc, wchar_t* argv[])
     auto arguments = (char**)std::malloc((argc + 1) * sizeof(char*));
     arguments[argc] = nullptr;
 
-    // Covert each argument, allocate and assign to pointer array.
+    // Convert each argument, allocate and assign to pointer array.
     for (auto arg = 0; arg < argc; arg++)
     {
         const auto utf8 = to_utf8(argv[arg]);
@@ -269,7 +281,7 @@ static bool is_terminal_utf8_character(const char text[], size_t size)
 
 // This optimizes character split detection by taking advantage of utf8
 // character recognition so we don't have to convert in full up to 3 times.
-// This does not guaratee that the entire string is valid as utf8, just that a
+// This does not guarantee that the entire string is valid as utf8, just that a
 // returned offset follows the last byte of a utf8 terminal char if it exists.
 static uint8_t offset_to_terminal_utf8_character(const char text[], size_t size)
 {
@@ -400,4 +412,5 @@ void set_binary_stdout()
 
 LCOV_EXCL_STOP()
 
+} // namespace system
 } // namespace libbitcoin

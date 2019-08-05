@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef LIBBITCOIN_TEST_HASH_HPP
-#define LIBBITCOIN_TEST_HASH_HPP
+#ifndef LIBBITCOIN_SYSTEM_TEST_HASH_HPP
+#define LIBBITCOIN_SYSTEM_TEST_HASH_HPP
 
 #include <string>
 #include <vector>

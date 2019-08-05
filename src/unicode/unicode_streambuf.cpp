@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2019 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
@@ -16,17 +16,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/bitcoin/unicode/unicode_streambuf.hpp>
+#include <bitcoin/system/unicode/unicode_streambuf.hpp>
 
 #include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <streambuf>
-#include <bitcoin/bitcoin/constants.hpp>
-#include <bitcoin/bitcoin/unicode/unicode.hpp>
-#include <bitcoin/bitcoin/utility/assert.hpp>
+#include <bitcoin/system/constants.hpp>
+#include <bitcoin/system/unicode/unicode.hpp>
+#include <bitcoin/system/utility/assert.hpp>
 
 namespace libbitcoin {
+namespace system {
 
 // Local definition for max number of bytes in a utf8 character.
 constexpr size_t utf8_max_character_size = 4;
@@ -36,14 +37,14 @@ unicode_streambuf::unicode_streambuf(std::wstreambuf* wide_buffer, size_t size)
     narrow_(new char[narrow_size_]), wide_(new wchar_t[narrow_size_]),
     wide_buffer_(wide_buffer)
 {
-    if (wide_size_ > (bc::max_uint64 / utf8_max_character_size))
+    if (wide_size_ > (max_uint64 / utf8_max_character_size))
         throw std::ios_base::failure(
             "Wide buffer must be no more than one fourth of max uint64.");
 
     // Input buffer is not yet populated, reflect zero length buffer here.
     setg(narrow_, narrow_, narrow_);
 
-    // Output buffer is underexposed by 1 byte to accomodate the overflow byte.
+    // Output buffer is underexposed by 1 byte to accommodate the overflow byte.
     setp(narrow_, &narrow_[narrow_size_ - 1]);
 }
 
@@ -61,7 +62,7 @@ unicode_streambuf::~unicode_streambuf()
 std::streambuf::int_type unicode_streambuf::underflow()
 {
     // streamsize is signed.
-    BITCOIN_ASSERT(wide_size_ > 0 && wide_size_ <= bc::max_int64);
+    BITCOIN_ASSERT(wide_size_ > 0 && wide_size_ <= max_int64);
     const auto size = static_cast<std::streamsize>(wide_size_);
 
     // Read from the wide input buffer.
@@ -86,7 +87,7 @@ std::streambuf::int_type unicode_streambuf::underflow()
 // MSVC does not support a UTF8 locale and as such streams interpret
 // narrow characters in the default locale. This implementation
 // assumes the stream will treat each byte of a multibyte narrow
-// chracter as an individual single byte character.
+// character as an individual single byte character.
 std::streambuf::int_type unicode_streambuf::overflow(
     std::streambuf::int_type character)
 {
@@ -147,4 +148,5 @@ int unicode_streambuf::sync()
     return failure;
 }
 
+} // namespace system
 } // namespace libbitcoin
