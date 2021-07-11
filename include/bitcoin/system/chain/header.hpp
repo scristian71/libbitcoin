@@ -25,6 +25,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <bitcoin/system/chain/block_filter.hpp>
 #include <bitcoin/system/chain/chain_state.hpp>
 #include <bitcoin/system/define.hpp>
 #include <bitcoin/system/error.hpp>
@@ -44,12 +45,6 @@ namespace chain {
 class BC_API header
 {
 public:
-    typedef std::vector<header> list;
-    typedef std::shared_ptr<header> ptr;
-    typedef std::shared_ptr<const header> const_ptr;
-    typedef std::vector<ptr> ptr_list;
-    typedef std::vector<const_ptr> const_ptr_list;
-
     // THIS IS FOR LIBRARY USE ONLY, DO NOT CREATE A DEPENDENCY ON IT.
     struct validation
     {
@@ -84,6 +79,9 @@ public:
         /// Derived from state stored on header (no fork point considered).
         /// Block is in confirmed state and referenced by the confirmed index.
         bool confirmed = false;
+
+        // Neutrino filter.
+        block_filter::ptr neutrino_filter;
     };
 
     // Constructors.

@@ -1,5 +1,5 @@
 ###############################################################################
-#  Copyright (c) 2014-2019 libbitcoin-system developers (see COPYING).
+#  Copyright (c) 2014-2020 libbitcoin-system developers (see COPYING).
 #
 #         GENERATED SOURCE CODE, DO NOT EDIT EXCEPT EXPERIMENTALLY
 #
@@ -32,13 +32,14 @@ doc_DATA = \
 # src/libbitcoin-system.la => ${libdir}
 #------------------------------------------------------------------------------
 lib_LTLIBRARIES = src/libbitcoin-system.la
-src_libbitcoin_system_la_CPPFLAGS = -I${srcdir}/include ${icu} ${png} ${qrencode} ${boost_BUILD_CPPFLAGS} ${pthread_BUILD_CPPFLAGS} ${icu_i18n_BUILD_CPPFLAGS} ${png_BUILD_CPPFLAGS} ${qrencode_BUILD_CPPFLAGS} ${secp256k1_BUILD_CPPFLAGS}
+src_libbitcoin_system_la_CPPFLAGS = -I${srcdir}/include ${icu} ${boost_BUILD_CPPFLAGS} ${pthread_BUILD_CPPFLAGS} ${icu_i18n_BUILD_CPPFLAGS} ${secp256k1_BUILD_CPPFLAGS}
 src_libbitcoin_system_la_LDFLAGS = ${boost_LDFLAGS}
-src_libbitcoin_system_la_LIBADD = ${boost_chrono_LIBS} ${boost_date_time_LIBS} ${boost_filesystem_LIBS} ${boost_iostreams_LIBS} ${boost_locale_LIBS} ${boost_log_LIBS} ${boost_program_options_LIBS} ${boost_regex_LIBS} ${boost_system_LIBS} ${boost_thread_LIBS} ${pthread_LIBS} ${rt_LIBS} ${icu_i18n_LIBS} ${dl_LIBS} ${png_LIBS} ${qrencode_LIBS} ${secp256k1_LIBS}
+src_libbitcoin_system_la_LIBADD = ${boost_chrono_LIBS} ${boost_date_time_LIBS} ${boost_filesystem_LIBS} ${boost_iostreams_LIBS} ${boost_locale_LIBS} ${boost_log_LIBS} ${boost_program_options_LIBS} ${boost_regex_LIBS} ${boost_system_LIBS} ${boost_thread_LIBS} ${pthread_LIBS} ${rt_LIBS} ${icu_i18n_LIBS} ${dl_LIBS} ${secp256k1_LIBS}
 src_libbitcoin_system_la_SOURCES = \
     src/error.cpp \
     src/settings.cpp \
     src/chain/block.cpp \
+    src/chain/block_filter.cpp \
     src/chain/chain_state.cpp \
     src/chain/compact.cpp \
     src/chain/header.cpp \
@@ -60,6 +61,7 @@ src_libbitcoin_system_la_SOURCES = \
     src/config/base64.cpp \
     src/config/block.cpp \
     src/config/checkpoint.cpp \
+    src/config/compact_filter.cpp \
     src/config/directory.cpp \
     src/config/endpoint.cpp \
     src/config/hash160.cpp \
@@ -96,10 +98,12 @@ src_libbitcoin_system_la_SOURCES = \
     src/math/ec_point.cpp \
     src/math/ec_scalar.cpp \
     src/math/elliptic_curve.cpp \
+    src/math/golomb_coded_sets.cpp \
     src/math/hash.cpp \
     src/math/ring_signature.cpp \
     src/math/secp256k1_initializer.cpp \
     src/math/secp256k1_initializer.hpp \
+    src/math/siphash.cpp \
     src/math/stealth.cpp \
     src/math/external/aes256.c \
     src/math/external/aes256.h \
@@ -131,6 +135,9 @@ src_libbitcoin_system_la_SOURCES = \
     src/message/block.cpp \
     src/message/block_transactions.cpp \
     src/message/compact_block.cpp \
+    src/message/compact_filter.cpp \
+    src/message/compact_filter_checkpoint.cpp \
+    src/message/compact_filter_headers.cpp \
     src/message/fee_filter.cpp \
     src/message/filter_add.cpp \
     src/message/filter_clear.cpp \
@@ -138,6 +145,9 @@ src_libbitcoin_system_la_SOURCES = \
     src/message/get_address.cpp \
     src/message/get_block_transactions.cpp \
     src/message/get_blocks.cpp \
+    src/message/get_compact_filter_checkpoint.cpp \
+    src/message/get_compact_filter_headers.cpp \
+    src/message/get_compact_filters.cpp \
     src/message/get_data.cpp \
     src/message/get_headers.cpp \
     src/message/header.cpp \
@@ -172,10 +182,12 @@ src_libbitcoin_system_la_SOURCES = \
     src/utility/dispatcher.cpp \
     src/utility/flush_lock.cpp \
     src/utility/interprocess_lock.cpp \
+    src/utility/istream_bit_reader.cpp \
     src/utility/istream_reader.cpp \
     src/utility/monitor.cpp \
+    src/utility/neutrino_filter.cpp \
+    src/utility/ostream_bit_writer.cpp \
     src/utility/ostream_writer.cpp \
-    src/utility/png.cpp \
     src/utility/prioritized_mutex.cpp \
     src/utility/property_tree.cpp \
     src/utility/pseudo_random.cpp \
@@ -186,6 +198,7 @@ src_libbitcoin_system_la_SOURCES = \
     src/utility/string.cpp \
     src/utility/thread.cpp \
     src/utility/threadpool.cpp \
+    src/utility/tiff.cpp \
     src/utility/work.cpp \
     src/wallet/bitcoin_uri.cpp \
     src/wallet/dictionary_en.cpp \
@@ -215,12 +228,13 @@ src_libbitcoin_system_la_SOURCES = \
     src/wallet/mini_keys.cpp \
     src/wallet/mnemonic.cpp \
     src/wallet/payment_address.cpp \
-    src/wallet/qrcode.cpp \
+    src/wallet/qr_code.cpp \
     src/wallet/select_outputs.cpp \
     src/wallet/stealth_address.cpp \
     src/wallet/stealth_receiver.cpp \
     src/wallet/stealth_sender.cpp \
     src/wallet/uri.cpp \
+    src/wallet/witness_address.cpp \
     src/wallet/parse_encrypted_keys/parse_encrypted_key.hpp \
     src/wallet/parse_encrypted_keys/parse_encrypted_key.ipp \
     src/wallet/parse_encrypted_keys/parse_encrypted_prefix.hpp \
@@ -230,16 +244,35 @@ src_libbitcoin_system_la_SOURCES = \
     src/wallet/parse_encrypted_keys/parse_encrypted_public.cpp \
     src/wallet/parse_encrypted_keys/parse_encrypted_public.hpp \
     src/wallet/parse_encrypted_keys/parse_encrypted_token.cpp \
-    src/wallet/parse_encrypted_keys/parse_encrypted_token.hpp
+    src/wallet/parse_encrypted_keys/parse_encrypted_token.hpp \
+    src/wallet/qrencode/bitstream.c \
+    src/wallet/qrencode/bitstream.h \
+    src/wallet/qrencode/mask.c \
+    src/wallet/qrencode/mask.h \
+    src/wallet/qrencode/mmask.c \
+    src/wallet/qrencode/mmask.h \
+    src/wallet/qrencode/mqrspec.c \
+    src/wallet/qrencode/mqrspec.h \
+    src/wallet/qrencode/qrencode.c \
+    src/wallet/qrencode/qrencode.h \
+    src/wallet/qrencode/qrencode_inner.h \
+    src/wallet/qrencode/qrinput.c \
+    src/wallet/qrencode/qrinput.h \
+    src/wallet/qrencode/qrspec.c \
+    src/wallet/qrencode/qrspec.h \
+    src/wallet/qrencode/rsecc.c \
+    src/wallet/qrencode/rsecc.h \
+    src/wallet/qrencode/split.c \
+    src/wallet/qrencode/split.h
 
 # local: examples/libbitcoin-system-examples
 #------------------------------------------------------------------------------
 if WITH_EXAMPLES
 
 noinst_PROGRAMS = examples/libbitcoin-system-examples
-examples_libbitcoin_system_examples_CPPFLAGS = -I${srcdir}/include ${icu} ${png} ${qrencode} ${boost_BUILD_CPPFLAGS} ${pthread_BUILD_CPPFLAGS} ${icu_i18n_BUILD_CPPFLAGS} ${png_BUILD_CPPFLAGS} ${qrencode_BUILD_CPPFLAGS} ${secp256k1_BUILD_CPPFLAGS}
+examples_libbitcoin_system_examples_CPPFLAGS = -I${srcdir}/include ${icu} ${boost_BUILD_CPPFLAGS} ${pthread_BUILD_CPPFLAGS} ${icu_i18n_BUILD_CPPFLAGS} ${secp256k1_BUILD_CPPFLAGS}
 examples_libbitcoin_system_examples_LDFLAGS = ${boost_LDFLAGS}
-examples_libbitcoin_system_examples_LDADD = src/libbitcoin-system.la ${boost_chrono_LIBS} ${boost_date_time_LIBS} ${boost_filesystem_LIBS} ${boost_iostreams_LIBS} ${boost_locale_LIBS} ${boost_log_LIBS} ${boost_program_options_LIBS} ${boost_regex_LIBS} ${boost_system_LIBS} ${boost_thread_LIBS} ${pthread_LIBS} ${rt_LIBS} ${icu_i18n_LIBS} ${dl_LIBS} ${png_LIBS} ${qrencode_LIBS} ${secp256k1_LIBS}
+examples_libbitcoin_system_examples_LDADD = src/libbitcoin-system.la ${boost_chrono_LIBS} ${boost_date_time_LIBS} ${boost_filesystem_LIBS} ${boost_iostreams_LIBS} ${boost_locale_LIBS} ${boost_log_LIBS} ${boost_program_options_LIBS} ${boost_regex_LIBS} ${boost_system_LIBS} ${boost_thread_LIBS} ${pthread_LIBS} ${rt_LIBS} ${icu_i18n_LIBS} ${dl_LIBS} ${secp256k1_LIBS}
 examples_libbitcoin_system_examples_SOURCES = \
     examples/main.cpp
 
@@ -252,13 +285,16 @@ if WITH_TESTS
 TESTS = libbitcoin-system-test_runner.sh
 
 check_PROGRAMS = test/libbitcoin-system-test
-test_libbitcoin_system_test_CPPFLAGS = -I${srcdir}/include ${icu} ${png} ${qrencode} ${boost_BUILD_CPPFLAGS} ${pthread_BUILD_CPPFLAGS} ${icu_i18n_BUILD_CPPFLAGS} ${png_BUILD_CPPFLAGS} ${qrencode_BUILD_CPPFLAGS} ${secp256k1_BUILD_CPPFLAGS}
+test_libbitcoin_system_test_CPPFLAGS = -I${srcdir}/include ${icu} ${boost_BUILD_CPPFLAGS} ${pthread_BUILD_CPPFLAGS} ${icu_i18n_BUILD_CPPFLAGS} ${secp256k1_BUILD_CPPFLAGS}
 test_libbitcoin_system_test_LDFLAGS = ${boost_LDFLAGS}
-test_libbitcoin_system_test_LDADD = src/libbitcoin-system.la ${boost_unit_test_framework_LIBS} ${boost_chrono_LIBS} ${boost_date_time_LIBS} ${boost_filesystem_LIBS} ${boost_iostreams_LIBS} ${boost_locale_LIBS} ${boost_log_LIBS} ${boost_program_options_LIBS} ${boost_regex_LIBS} ${boost_system_LIBS} ${boost_thread_LIBS} ${pthread_LIBS} ${rt_LIBS} ${icu_i18n_LIBS} ${dl_LIBS} ${png_LIBS} ${qrencode_LIBS} ${secp256k1_LIBS}
+test_libbitcoin_system_test_LDADD = src/libbitcoin-system.la ${boost_unit_test_framework_LIBS} ${boost_chrono_LIBS} ${boost_date_time_LIBS} ${boost_filesystem_LIBS} ${boost_iostreams_LIBS} ${boost_locale_LIBS} ${boost_log_LIBS} ${boost_program_options_LIBS} ${boost_regex_LIBS} ${boost_system_LIBS} ${boost_thread_LIBS} ${pthread_LIBS} ${rt_LIBS} ${icu_i18n_LIBS} ${dl_LIBS} ${secp256k1_LIBS}
 test_libbitcoin_system_test_SOURCES = \
     test/main.cpp \
+    test/overloads.cpp \
+    test/overloads.hpp \
     test/settings.cpp \
     test/chain/block.cpp \
+    test/chain/block_filter.cpp \
     test/chain/chain_state.cpp \
     test/chain/compact.cpp \
     test/chain/header.cpp \
@@ -278,6 +314,7 @@ test_libbitcoin_system_test_SOURCES = \
     test/config/base58.cpp \
     test/config/block.cpp \
     test/config/checkpoint.cpp \
+    test/config/compact_filter.cpp \
     test/config/endpoint.cpp \
     test/config/hash256.cpp \
     test/config/parameter.cpp \
@@ -300,6 +337,8 @@ test_libbitcoin_system_test_SOURCES = \
     test/math/hash.hpp \
     test/math/limits.cpp \
     test/math/ring_signature.cpp \
+    test/math/siphash.cpp \
+    test/math/siphash.hpp \
     test/math/stealth.cpp \
     test/math/uint256.cpp \
     test/message/address.cpp \
@@ -308,6 +347,9 @@ test_libbitcoin_system_test_SOURCES = \
     test/message/block.cpp \
     test/message/block_transactions.cpp \
     test/message/compact_block.cpp \
+    test/message/compact_filter.cpp \
+    test/message/compact_filter_checkpoint.cpp \
+    test/message/compact_filter_headers.cpp \
     test/message/fee_filter.cpp \
     test/message/filter_add.cpp \
     test/message/filter_clear.cpp \
@@ -315,6 +357,9 @@ test_libbitcoin_system_test_SOURCES = \
     test/message/get_address.cpp \
     test/message/get_block_transactions.cpp \
     test/message/get_blocks.cpp \
+    test/message/get_compact_filter_checkpoint.cpp \
+    test/message/get_compact_filter_headers.cpp \
+    test/message/get_compact_filters.cpp \
     test/message/get_data.cpp \
     test/message/get_headers.cpp \
     test/message/header.cpp \
@@ -340,15 +385,17 @@ test_libbitcoin_system_test_SOURCES = \
     test/unicode/unicode_istream.cpp \
     test/unicode/unicode_ostream.cpp \
     test/utility/binary.cpp \
+    test/utility/bit_stream.cpp \
     test/utility/collection.cpp \
     test/utility/data.cpp \
     test/utility/endian.cpp \
-    test/utility/png.cpp \
+    test/utility/neutrino_filter.cpp \
     test/utility/property_tree.cpp \
     test/utility/pseudo_random.cpp \
     test/utility/serializer.cpp \
     test/utility/stream.cpp \
     test/utility/thread.cpp \
+    test/utility/tiff.cpp \
     test/wallet/bitcoin_uri.cpp \
     test/wallet/ec_private.cpp \
     test/wallet/ec_public.cpp \
@@ -360,13 +407,14 @@ test_libbitcoin_system_test_SOURCES = \
     test/wallet/mnemonic.cpp \
     test/wallet/mnemonic.hpp \
     test/wallet/payment_address.cpp \
-    test/wallet/qrcode.cpp \
+    test/wallet/qr_code.cpp \
     test/wallet/select_outputs.cpp \
     test/wallet/stealth_address.cpp \
     test/wallet/stealth_receiver.cpp \
     test/wallet/stealth_sender.cpp \
     test/wallet/uri.cpp \
-    test/wallet/uri_reader.cpp
+    test/wallet/uri_reader.cpp \
+    test/wallet/witness_address.cpp
 
 endif WITH_TESTS
 
@@ -390,6 +438,7 @@ include_bitcoin_system_HEADERS = \
 include_bitcoin_system_chaindir = ${includedir}/bitcoin/system/chain
 include_bitcoin_system_chain_HEADERS = \
     include/bitcoin/system/chain/block.hpp \
+    include/bitcoin/system/chain/block_filter.hpp \
     include/bitcoin/system/chain/chain_state.hpp \
     include/bitcoin/system/chain/compact.hpp \
     include/bitcoin/system/chain/header.hpp \
@@ -415,6 +464,7 @@ include_bitcoin_system_config_HEADERS = \
     include/bitcoin/system/config/base64.hpp \
     include/bitcoin/system/config/block.hpp \
     include/bitcoin/system/config/checkpoint.hpp \
+    include/bitcoin/system/config/compact_filter.hpp \
     include/bitcoin/system/config/directory.hpp \
     include/bitcoin/system/config/endpoint.hpp \
     include/bitcoin/system/config/hash160.hpp \
@@ -472,7 +522,9 @@ include_bitcoin_system_impl_utility_HEADERS = \
     include/bitcoin/system/impl/utility/data.ipp \
     include/bitcoin/system/impl/utility/deserializer.ipp \
     include/bitcoin/system/impl/utility/endian.ipp \
+    include/bitcoin/system/impl/utility/istream_bit_reader.ipp \
     include/bitcoin/system/impl/utility/istream_reader.ipp \
+    include/bitcoin/system/impl/utility/ostream_bit_writer.ipp \
     include/bitcoin/system/impl/utility/ostream_writer.ipp \
     include/bitcoin/system/impl/utility/pending.ipp \
     include/bitcoin/system/impl/utility/property_tree.ipp \
@@ -524,9 +576,11 @@ include_bitcoin_system_math_HEADERS = \
     include/bitcoin/system/math/ec_point.hpp \
     include/bitcoin/system/math/ec_scalar.hpp \
     include/bitcoin/system/math/elliptic_curve.hpp \
+    include/bitcoin/system/math/golomb_coded_sets.hpp \
     include/bitcoin/system/math/hash.hpp \
     include/bitcoin/system/math/limits.hpp \
     include/bitcoin/system/math/ring_signature.hpp \
+    include/bitcoin/system/math/siphash.hpp \
     include/bitcoin/system/math/stealth.hpp
 
 include_bitcoin_system_messagedir = ${includedir}/bitcoin/system/message
@@ -537,6 +591,9 @@ include_bitcoin_system_message_HEADERS = \
     include/bitcoin/system/message/block.hpp \
     include/bitcoin/system/message/block_transactions.hpp \
     include/bitcoin/system/message/compact_block.hpp \
+    include/bitcoin/system/message/compact_filter.hpp \
+    include/bitcoin/system/message/compact_filter_checkpoint.hpp \
+    include/bitcoin/system/message/compact_filter_headers.hpp \
     include/bitcoin/system/message/fee_filter.hpp \
     include/bitcoin/system/message/filter_add.hpp \
     include/bitcoin/system/message/filter_clear.hpp \
@@ -544,6 +601,9 @@ include_bitcoin_system_message_HEADERS = \
     include/bitcoin/system/message/get_address.hpp \
     include/bitcoin/system/message/get_block_transactions.hpp \
     include/bitcoin/system/message/get_blocks.hpp \
+    include/bitcoin/system/message/get_compact_filter_checkpoint.hpp \
+    include/bitcoin/system/message/get_compact_filter_headers.hpp \
+    include/bitcoin/system/message/get_compact_filters.hpp \
     include/bitcoin/system/message/get_data.hpp \
     include/bitcoin/system/message/get_headers.hpp \
     include/bitcoin/system/message/header.hpp \
@@ -584,6 +644,8 @@ include_bitcoin_system_utility_HEADERS = \
     include/bitcoin/system/utility/assert.hpp \
     include/bitcoin/system/utility/atomic.hpp \
     include/bitcoin/system/utility/binary.hpp \
+    include/bitcoin/system/utility/bit_reader.hpp \
+    include/bitcoin/system/utility/bit_writer.hpp \
     include/bitcoin/system/utility/collection.hpp \
     include/bitcoin/system/utility/color.hpp \
     include/bitcoin/system/utility/conditional_lock.hpp \
@@ -600,12 +662,14 @@ include_bitcoin_system_utility_HEADERS = \
     include/bitcoin/system/utility/exceptions.hpp \
     include/bitcoin/system/utility/flush_lock.hpp \
     include/bitcoin/system/utility/interprocess_lock.hpp \
+    include/bitcoin/system/utility/istream_bit_reader.hpp \
     include/bitcoin/system/utility/istream_reader.hpp \
     include/bitcoin/system/utility/monitor.hpp \
+    include/bitcoin/system/utility/neutrino_filter.hpp \
     include/bitcoin/system/utility/noncopyable.hpp \
+    include/bitcoin/system/utility/ostream_bit_writer.hpp \
     include/bitcoin/system/utility/ostream_writer.hpp \
     include/bitcoin/system/utility/pending.hpp \
-    include/bitcoin/system/utility/png.hpp \
     include/bitcoin/system/utility/prioritized_mutex.hpp \
     include/bitcoin/system/utility/property_tree.hpp \
     include/bitcoin/system/utility/pseudo_random.hpp \
@@ -621,6 +685,7 @@ include_bitcoin_system_utility_HEADERS = \
     include/bitcoin/system/utility/synchronizer.hpp \
     include/bitcoin/system/utility/thread.hpp \
     include/bitcoin/system/utility/threadpool.hpp \
+    include/bitcoin/system/utility/tiff.hpp \
     include/bitcoin/system/utility/timer.hpp \
     include/bitcoin/system/utility/track.hpp \
     include/bitcoin/system/utility/work.hpp \
@@ -644,13 +709,14 @@ include_bitcoin_system_wallet_HEADERS = \
     include/bitcoin/system/wallet/mini_keys.hpp \
     include/bitcoin/system/wallet/mnemonic.hpp \
     include/bitcoin/system/wallet/payment_address.hpp \
-    include/bitcoin/system/wallet/qrcode.hpp \
+    include/bitcoin/system/wallet/qr_code.hpp \
     include/bitcoin/system/wallet/select_outputs.hpp \
     include/bitcoin/system/wallet/stealth_address.hpp \
     include/bitcoin/system/wallet/stealth_receiver.hpp \
     include/bitcoin/system/wallet/stealth_sender.hpp \
     include/bitcoin/system/wallet/uri.hpp \
-    include/bitcoin/system/wallet/uri_reader.hpp
+    include/bitcoin/system/wallet/uri_reader.hpp \
+    include/bitcoin/system/wallet/witness_address.hpp
 
 
 # Custom make targets.

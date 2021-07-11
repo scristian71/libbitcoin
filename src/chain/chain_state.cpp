@@ -126,6 +126,9 @@ chain_state::activations chain_state::activation(const data& values,
     // testnet is activated based on configuration alone (hard fork).
     result.forks |= (rule_fork::difficult & forks);
 
+    // bip42 is activated based on configuration alone (soft fork).
+    result.forks |= (rule_fork::bip42_rule & forks);
+
     // bip90 is activated based on configuration alone (hard fork).
     result.forks |= (rule_fork::bip90_rule & forks);
 
@@ -308,12 +311,12 @@ uint32_t chain_state::work_required(const data& values, uint32_t forks,
         return work_required_retarget(values, forks,
             settings.proof_of_work_limit, settings.minimum_timespan(),
             settings.maximum_timespan(),
-            settings.retargeting_interval_seconds());
+            settings.retargeting_interval_seconds);
 
     // Testnet retargets easy on inter-interval.
     if (!script::is_enabled(forks, rule_fork::difficult))
         return easy_work_required(values, settings.retargeting_interval(),
-            settings.proof_of_work_limit, settings.block_spacing_seconds());
+            settings.proof_of_work_limit, settings.block_spacing_seconds);
 
     // Mainnet not retargeting.
     return bits_high(values);
@@ -329,11 +332,14 @@ uint32_t chain_state::work_required_retarget(const data& values, uint32_t forks,
     BITCOIN_ASSERT_MSG(!bits.is_overflowed(), "previous block has bad bits");
 
     uint256_t target(bits);
+
+    // Conditionally implement retarget overflow patch (e.g. Litecoin).
     const auto retarget_overflow = script::is_enabled(forks,
         rule_fork::retarget_overflow_patch);
-    using namespace boost::multiprecision;
-    const auto shift = retarget_overflow && (msb(target) + 1 > msb(pow_limit)) ?
-        1u : 0u;
+    const auto shift = retarget_overflow && (
+        boost::multiprecision::msb(target) + 1 >
+        boost::multiprecision::msb(pow_limit)) ? 1u : 0u;
+
     target >>= shift;
     target *= retarget_timespan(values, minimum_timespan, maximum_timespan);
     target /= retargeting_interval_seconds;
@@ -393,7 +399,7 @@ uint32_t chain_state::easy_time_limit(const chain_state::data& values,
     const int64_t high = timestamp_high(values);
 
     //*************************************************************************
-    // CONSENSUS: add unsigned 32 bit numbers in signed 64 bit space in
+    // CONSENSUS: add signed 32 bit numbers in signed 64 bit space in
     // order to prevent overflow before applying the domain constraint.
     //*************************************************************************
     return domain_constrain<uint32_t>(cast_add<int64_t>(high, spacing));
@@ -552,12 +558,14 @@ chain_state::data chain_state::to_pool(const chain_state& top,
     if (data.timestamp.ordered.size() > timestamp_count(height, forks))
         data.timestamp.ordered.pop_front();
 
+    // Conditionally patch time warp bug (e.g. Litecoin).
+    const auto patch = script::is_enabled(forks, rule_fork::time_warp_patch);
+
     // Regtest does not perform retargeting.
     // If promoting from retarget height, move that timestamp into retarget.
     if (retarget &&
         is_retarget_height(height - 1u, settings.retargeting_interval()))
-        data.timestamp.retarget = (script::is_enabled(forks,
-            rule_fork::time_warp_patch) && height != 1) ?
+        data.timestamp.retarget = (patch && height != 1) ?
             *std::next(data.timestamp.ordered.crbegin()) : data.timestamp.self;
 
     // Replace previous block state with tx pool chain state for next height

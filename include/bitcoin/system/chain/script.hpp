@@ -51,6 +51,7 @@ public:
     typedef machine::rule_fork rule_fork;
     typedef machine::script_pattern script_pattern;
     typedef machine::script_version script_version;
+    typedef std::vector<script> list;
 
     // Constructors.
     //-------------------------------------------------------------------------
@@ -89,9 +90,9 @@ public:
     bool from_data(reader& source, bool prefix);
 
     /// Deserialization invalidates the iterator.
+    bool from_string(const std::string& mnemonic);
     void from_operations(operation::list&& ops);
     void from_operations(const operation::list& ops);
-    bool from_string(const std::string& mnemonic);
 
     /// A script object is valid if the byte count matches the prefix.
     bool is_valid() const;
@@ -107,6 +108,7 @@ public:
     void to_data(writer& sink, bool prefix) const;
 
     std::string to_string(uint32_t active_forks) const;
+    hash_digest to_payments_key() const;
 
     // Iteration.
     //-------------------------------------------------------------------------
@@ -150,9 +152,9 @@ public:
     //-------------------------------------------------------------------------
 
     /// Transaction helpers.
-    static hash_digest to_outputs(const transaction& tx);
-    static hash_digest to_inpoints(const transaction& tx);
-    static hash_digest to_sequences(const transaction& tx);
+    static data_chunk to_outputs(const transaction& tx);
+    static data_chunk to_inpoints(const transaction& tx);
+    static data_chunk to_sequences(const transaction& tx);
 
     /// Determine if the fork is enabled in the active forks set.
     static bool is_enabled(uint32_t active_forks, rule_fork fork)
@@ -191,12 +193,16 @@ public:
         const point_list& points);
     static operation::list to_pay_multisig_pattern(uint8_t signatures,
         const data_stack& points);
+    static operation::list to_pay_witness_key_hash_pattern(
+        const short_hash& hash);
+    static operation::list to_pay_witness_script_hash_pattern(
+        const hash_digest& hash);
 
     // Utilities (non-static).
     //-------------------------------------------------------------------------
 
     /// Common pattern detection.
-    data_chunk witness_program() const;
+    const data_chunk& witness_program() const;
     script_version version() const;
     script_pattern pattern() const;
     script_pattern input_pattern() const;
@@ -205,6 +211,7 @@ public:
     /// Consensus computations.
     size_t sigops(bool accurate) const;
     void find_and_delete(const data_stack& endorsements);
+    bool is_oversized() const;
     bool is_unspendable() const;
 
     // Validation.

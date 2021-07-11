@@ -371,21 +371,21 @@ hash_digest block::hash() const
 // 64 bit chain should not exceed 75, using a limit of: 10 + log2(height) + 1.
 size_t block::locator_size(size_t top)
 {
-    // Set rounding behavior, not consensus-related, thread side effect :<.
-    std::fesetround(FE_UPWARD);
-
-    const auto first_ten_or_top = std::min(size_t(10), top);
+    const auto first_ten_or_top = std::min(size_t{10}, top);
     const auto remaining = top - first_ten_or_top;
-    const auto back_off = remaining == 0 ? 0.0 :
-                          remaining == 1 ? 1.0 : std::log2(remaining);
-    const auto rounded_up_log = static_cast<size_t>(std::nearbyint(back_off));
-    return first_ten_or_top + rounded_up_log + size_t(1);
+
+    // Set log2(0) -> 0, log2(1) -> 1 and round up higher exponential backoff
+    // results to next whole number by adding 0.5 and truncating.
+    const auto back_off = remaining < 2u ? remaining :
+        static_cast<size_t>(std::log2(remaining) + 0.5);
+
+    return first_ten_or_top + back_off + 1u;
 }
 
 // This algorithm is a network best practice, not a consensus rule.
 block::indexes block::locator_heights(size_t top)
 {
-    size_t step = 1;
+    size_t step = 1u;
     indexes heights;
     const auto reservation = locator_size(top);
     heights.reserve(reservation);
@@ -396,8 +396,8 @@ block::indexes block::locator_heights(size_t top)
         heights.push_back(height);
 
         // Push top 10 indexes first, then back off exponentially.
-        if (heights.size() > 10)
-            step <<= 1;
+        if (heights.size() > 10u)
+            step <<= 1u;
     }
 
     // Push the genesis block index.
@@ -434,12 +434,12 @@ void block::strip_witness()
 
 // static
 uint64_t block::subsidy(size_t height, uint64_t subsidy_interval,
-    uint64_t initial_block_subsidy_satoshi)
+    uint64_t initial_block_subsidy_satoshi, bool bip42)
 {
     static const auto overflow = sizeof(uint64_t) * byte_bits;
     auto subsidy = initial_block_subsidy_satoshi;
     const auto halvings = height / subsidy_interval;
-    subsidy >>= (halvings >= overflow ? 0 : halvings);
+    subsidy >>= (bip42 && halvings >= overflow ? 0 : halvings);
     return subsidy;
 }
 
@@ -683,18 +683,18 @@ uint64_t block::claim() const
 
 // Overflow returns max_uint64.
 uint64_t block::reward(size_t height, uint64_t subsidy_interval,
-    uint64_t initial_block_subsidy_satoshi) const
+    uint64_t initial_block_subsidy_satoshi, bool bip42) const
 {
     ////static_assert(max_money() < max_uint64, "overflow sentinel invalid");
     return ceiling_add(fees(), subsidy(height, subsidy_interval,
-        initial_block_subsidy_satoshi));
+        initial_block_subsidy_satoshi, bip42));
 }
 
 bool block::is_valid_coinbase_claim(size_t height, uint64_t subsidy_interval,
-    uint64_t initial_block_subsidy_satoshi) const
+    uint64_t initial_block_subsidy_satoshi, bool bip42) const
 {
     return claim() <= reward(height, subsidy_interval,
-        initial_block_subsidy_satoshi);
+        initial_block_subsidy_satoshi, bip42);
 }
 
 bool block::is_valid_coinbase_script(size_t height) const
@@ -859,6 +859,7 @@ code block::accept(const chain_state& state,
     code ec;
     const auto bip16 = state.is_enabled(bip16_rule);
     const auto bip34 = state.is_enabled(bip34_rule);
+    const auto bip42 = state.is_enabled(bip42_rule);
     const auto bip113 = state.is_enabled(bip113_rule);
     const auto bip141 = state.is_enabled(bip141_rule);
 
@@ -881,8 +882,7 @@ code block::accept(const chain_state& state,
 
     // TODO: relates height to total of tx.fee (pool cach).
     else if (!is_valid_coinbase_claim(state.height(),
-            settings.subsidy_interval(), settings.bitcoin_to_satoshi(
-                settings.initial_block_subsidy_bitcoin())))
+        settings.subsidy_interval_blocks, settings.initial_subsidy(), bip42))
         return error::coinbase_value_limit;
 
     // TODO: relates median time past to tx.locktime (pool cache min tx.time).

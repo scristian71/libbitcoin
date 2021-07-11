@@ -50,6 +50,19 @@ namespace chain {
 
 using namespace bc::system::machine;
 
+#define RETURN_CACHED(name, type, context) \
+    hash_mutex_.lock_upgrade(); \
+    if (!name##_##context##_) \
+    { \
+        hash_mutex_.unlock_upgrade_and_lock(); \
+        name##_##context##_ = std::make_shared<hash_digest>(type##_hash( \
+            script::to_##name(*this))); \
+        hash_mutex_.unlock_and_lock_upgrade(); \
+    } \
+    const auto hash = *name##_##context##_; \
+    hash_mutex_.unlock_upgrade(); \
+    return hash
+
 // HACK: unlinked must match tx slab_map::not_found.
 const uint64_t transaction::validation::unlinked = max_int64;
 
@@ -657,71 +670,17 @@ hash_digest transaction::hash(bool witness) const
 
 hash_digest transaction::outputs_hash() const
 {
-    ///////////////////////////////////////////////////////////////////////////
-    // Critical Section
-    hash_mutex_.lock_upgrade();
-
-    if (!outputs_hash_)
-    {
-        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        hash_mutex_.unlock_upgrade_and_lock();
-        outputs_hash_ = std::make_shared<hash_digest>(
-            script::to_outputs(*this));
-        hash_mutex_.unlock_and_lock_upgrade();
-        //-----------------------------------------------------------------
-    }
-
-    const auto hash = *outputs_hash_;
-    hash_mutex_.unlock_upgrade();
-    ///////////////////////////////////////////////////////////////////////////
-
-    return hash;
+    RETURN_CACHED(outputs, bitcoin, hash);
 }
 
 hash_digest transaction::inpoints_hash() const
 {
-    ///////////////////////////////////////////////////////////////////////////
-    // Critical Section
-    hash_mutex_.lock_upgrade();
-
-    if (!inpoints_hash_)
-    {
-        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        hash_mutex_.unlock_upgrade_and_lock();
-        inpoints_hash_ = std::make_shared<hash_digest>(
-            script::to_inpoints(*this));
-        hash_mutex_.unlock_and_lock_upgrade();
-        //-----------------------------------------------------------------
-    }
-
-    const auto hash = *inpoints_hash_;
-    hash_mutex_.unlock_upgrade();
-    ///////////////////////////////////////////////////////////////////////////
-
-    return hash;
+    RETURN_CACHED(inpoints, bitcoin, hash);
 }
 
 hash_digest transaction::sequences_hash() const
 {
-    ///////////////////////////////////////////////////////////////////////////
-    // Critical Section
-    hash_mutex_.lock_upgrade();
-
-    if (!sequences_hash_)
-    {
-        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        hash_mutex_.unlock_upgrade_and_lock();
-        sequences_hash_ = std::make_shared<hash_digest>(
-            script::to_sequences(*this));
-        hash_mutex_.unlock_and_lock_upgrade();
-        //-----------------------------------------------------------------
-    }
-
-    const auto hash = *sequences_hash_;
-    hash_mutex_.unlock_upgrade();
-    ///////////////////////////////////////////////////////////////////////////
-
-    return hash;
+    RETURN_CACHED(sequences, bitcoin, hash);
 }
 
 // Utilities.
@@ -1141,11 +1100,10 @@ code transaction::accept(bool transaction_pool) const
 code transaction::accept(const chain_state& state, bool transaction_pool) const
 {
     const auto bip16 = state.is_enabled(rule_fork::bip16_rule);
-    //const auto bip30 = state.is_enabled(rule_fork::bip30_rule);
     const auto bip68 = state.is_enabled(rule_fork::bip68_rule);
     const auto bip141 = state.is_enabled(rule_fork::bip141_rule);
 
-    // bip141 discounts segwit sigops by increasing limit and legacy weight.
+    // Segwit sigops are discounted by increasing limit and legacy weight.
     const auto max_sigops = bip141 ? max_fast_sigops : max_block_sigops;
 
     if (transaction_pool && state.is_under_checkpoint())
@@ -1160,12 +1118,6 @@ code transaction::accept(const chain_state& state, bool transaction_pool) const
 
     if (transaction_pool && version() > state.maximum_transaction_version())
         return error::transaction_version;
-
-    //// An unconfirmed transaction hash that exists in the chain is not accepted
-    //// even if the original is spent in the new block. This is not necessary
-    //// nor is it described by BIP30, but it is in the code referenced by BIP30.
-    //else if (bip30 && metadata.existed)
-    //    return error::unspent_duplicate;
 
     else if (is_missing_previous_outputs())
         return error::missing_previous_output;
@@ -1213,6 +1165,8 @@ code transaction::connect(const chain_state& state) const
 
     return error::success;
 }
+
+#undef RETURN_CACHED
 
 } // namespace chain
 } // namespace system

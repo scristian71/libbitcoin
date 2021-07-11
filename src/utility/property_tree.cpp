@@ -21,11 +21,14 @@
 
 #include <cstdint>
 #include <exception>
+#include <functional>
 #include <string>
 #include <vector>
 #include <boost/iostreams/stream.hpp>
 #include <boost/property_tree/ptree.hpp>
+#undef BOOST_BIND_NO_PLACEHOLDERS
 #include <boost/property_tree/json_parser.hpp>
+#define BOOST_BIND_NO_PLACEHOLDERS
 #include <bitcoin/system/define.hpp>
 #include <bitcoin/system/config/base16.hpp>
 #include <bitcoin/system/config/header.hpp>
@@ -33,7 +36,6 @@
 #include <bitcoin/system/config/hash256.hpp>
 #include <bitcoin/system/math/stealth.hpp>
 #include <bitcoin/system/utility/collection.hpp>
-
 
 namespace libbitcoin {
 namespace system {
@@ -434,6 +436,70 @@ ptree property_tree(const bitcoin_uri& uri)
 
     ptree tree;
     tree.add_child("uri", uri_props);
+    return tree;
+}
+
+// compact_filter
+
+ptree property_list(const message::compact_filter& filter, bool )
+{
+    ptree tree;
+    tree.put("filter_type", filter.filter_type());
+    tree.put("block_hash", hash256(filter.block_hash()));
+    tree.put("filter", base16(filter.filter()));
+
+    return tree;
+}
+
+ptree property_tree(const message::compact_filter& filter, bool json)
+{
+    ptree tree;
+    tree.add_child("compact_filter", property_list(filter, json));
+    return tree;
+}
+
+// compact_filter_checkpoint
+
+ptree property_list(const message::compact_filter_checkpoint& checkpoint,
+    bool json)
+{
+    ptree tree;
+    tree.put("filter_type", checkpoint.filter_type());
+    tree.put("stop_hash", hash256(checkpoint.stop_hash()));
+    tree.add_child("filter_headers", property_list(
+        checkpoint.filter_headers(), json));
+
+    return tree;
+}
+
+ptree property_tree(const message::compact_filter_checkpoint& checkpoint,
+    bool json)
+{
+    ptree tree;
+    tree.add_child("compact_filter_checkpoint", property_list(checkpoint, json));
+    return tree;
+}
+
+// compact_filter_headers
+
+ptree property_list(const message::compact_filter_headers& headers, bool json)
+{
+    ptree tree;
+    tree.put("filter_type", headers.filter_type());
+    tree.put("stop_hash", hash256(headers.stop_hash()));
+    tree.put("previous_filter_header", hash256(
+        headers.previous_filter_header()));
+
+    tree.add_child("filter_hashes", property_list(headers.filter_hashes(),
+        json));
+
+    return tree;
+}
+
+ptree property_tree(const message::compact_filter_headers& headers, bool json)
+{
+    ptree tree;
+    tree.add_child("compact_filter_headers", property_list(headers, json));
     return tree;
 }
 

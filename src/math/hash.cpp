@@ -27,6 +27,7 @@
 #include "../math/external/crypto_scrypt.h"
 #include "../math/external/hmac_sha256.h"
 #include "../math/external/hmac_sha512.h"
+#include "../math/external/pbkdf2_sha256.h"
 #include "../math/external/pkcs5_pbkdf2.h"
 #include "../math/external/ripemd160.h"
 #include "../math/external/sha1.h"
@@ -138,6 +139,15 @@ long_hash pkcs5_pbkdf2_hmac_sha512(const data_slice& passphrase,
     return hash;
 }
 
+data_chunk pbkdf2_hmac_sha256(const data_slice& passphrase,
+    const data_slice& salt, size_t iterations, size_t length)
+{
+    data_chunk output(length);
+    pbkdf2_sha256(passphrase.data(), passphrase.size(), salt.data(),
+        salt.size(), iterations, output.data(), length);
+    return output;
+}
+
 static void handle_script_result(int result)
 {
     if (result == 0)
@@ -156,8 +166,8 @@ static void handle_script_result(int result)
     }
 }
 
-data_chunk scrypt(const data_slice& data, const data_slice& salt, uint64_t N, uint32_t p,
-    uint32_t r, size_t length)
+data_chunk scrypt(const data_slice& data, const data_slice& salt, uint64_t N,
+    uint32_t p, uint32_t r, size_t length)
 {
     data_chunk output(length);
     const auto result = crypto_scrypt(data.data(), data.size(), salt.data(),

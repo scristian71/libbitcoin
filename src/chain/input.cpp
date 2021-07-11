@@ -431,7 +431,6 @@ size_t input::signature_operations(bool bip16, bool bip141) const
 {
     chain::script witness, embedded;
     const auto& prevout = previous_output_.metadata.cache.script();
-    ////BITCOIN_ASSERT_MSG(!bip141 || bip16, "bip141 implies bip16");
 
     // Penalize quadratic signature operations (bip141).
     const auto sigops_factor = bip141 ? fast_sigops_factor : 1u;
@@ -441,7 +440,7 @@ size_t input::signature_operations(bool bip16, bool bip141) const
 
     if (bip141 && witness_.extract_sigop_script(witness, prevout))
     {
-        // Add sigops in the witness (bip141).
+        // Add sigops in the witness script (bip141).
         return sigops + witness.sigops(true);
     }
 
@@ -449,7 +448,7 @@ size_t input::signature_operations(bool bip16, bool bip141) const
     {
         if (bip141 && witness_.extract_sigop_script(witness, embedded))
         {
-            // Add sigops in the embedded witness (bip141).
+            // Add sigops in the embedded witness script (bip141).
             return sigops + witness.sigops(true);
         }
         else
